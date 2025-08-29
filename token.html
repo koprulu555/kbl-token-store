@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kanal Token Gösterici</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a1a;
+      color: #f0f0f0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 1000px;
+      width: 100%;
+    }
+    h2 {
+      color: #3498db;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .input-container {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    input {
+      padding: 10px;
+      border-radius: 5px;
+      border: 1px solid #34495e;
+      background: #252525;
+      color: #f0f0f0;
+      font-size: 16px;
+      width: 200px;
+    }
+    button {
+      padding: 10px 20px;
+      border-radius: 5px;
+      border: none;
+      background: #3498db;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    .token-display {
+      background: #252525;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-wrap: break-word;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 14px;
+      border: 1px solid #34495e;
+    }
+    .loading {
+      padding: 20px;
+      text-align: center;
+      color: #3498db;
+    }
+    .error {
+      color: #e74c3c;
+      padding: 20px;
+      text-align: center;
+      background: rgba(231, 76, 60, 0.1);
+      border-radius: 5px;
+      border: 1px solid #c0392b;
+    }
+    .info {
+      color: #7f8c8d;
+      font-size: 14px;
+      margin-top: 20px;
+      text-align: center;
+    }
+    .timestamp {
+      color: #bdc3c7;
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .examples {
+      margin-top: 20px;
+      padding: 15px;
+      background: #252525;
+      border-radius: 5px;
+      border: 1px solid #34495e;
+    }
+    .examples h3 {
+      margin-top: 0;
+      color: #3498db;
+    }
+    .example-link {
+      color: #3498db;
+      text-decoration: none;
+      margin-right: 15px;
+    }
+    .example-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Kanal Token Gösterici</h2>
+    
+    <div class="input-container">
+      <input type="text" id="channelId" placeholder="Kanal ID'si (örn: atv)" />
+      <button onclick="loadToken()">Token Al</button>
+    </div>
+    
+    <div id="tokenResult">
+      <div class="info">Lütfen bir kanal ID'si girin veya aşağıdaki örnekleri kullanın</div>
+    </div>
+    
+    <div class="examples">
+      <h3>Örnek Kanal ID'leri:</h3>
+      <div>
+        <a href="?id=atv" class="example-link">atv</a>
+        <a href="?id=show" class="example-link">show</a>
+        <a href="?id=star" class="example-link">star</a>
+        <a href="?id=trt1" class="example-link">trt1</a>
+        <a href="?id=ahaber" class="example-link">ahaber</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // URL'den id parametresini al
+    const urlParams = new URLSearchParams(window.location.search);
+    const channelId = urlParams.get('id');
+    
+    if (channelId) {
+      // Eğer URL'de id parametresi varsa, input alanını doldur ve token al
+      document.getElementById('channelId').value = channelId;
+      fetchToken(channelId);
+    }
+  });
+
+  function loadToken() {
+    const channelId = document.getElementById('channelId').value.trim();
+    if (!channelId) {
+      alert('Lütfen bir kanal ID\'si girin!');
+      return;
+    }
+    
+    // URL'yi güncelle
+    const newUrl = window.location.origin + window.location.pathname + '?id=' + encodeURIComponent(channelId);
+    window.history.replaceState({}, '', newUrl);
+    
+    fetchToken(channelId);
+  }
+
+  async function fetchToken(channelId) {
+    const tokenResult = document.getElementById('tokenResult');
+    tokenResult.innerHTML = '<div class="loading">Token bilgisi API\'den alınıyor...</div>';
+    
+    // --- API ---
+    const API_URL = "https://core-api.kablowebtv.com/api/channels";
+    const HEADERS = {
+      "User-Agent": "Mozilla/5.0",
+      "Referer": "https://tvheryerde.com",
+      "Origin": "https://tvheryerde.com",
+      "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbnYiOiJMSVZFIiwiaXBiIjoiMCIsImNnZCI6IjA5M2Q3MjBhLTUwMmMtNDFlZC1hODBmLTJiODE2OTg0ZmI5NSIsImNzaCI6IlRSS1NUIiwiZGN0IjoiRTFDNjQiLCJkaSI6Ijg5MTlmNjYwLTBhZGUtNGYwMS1hMTVlLTc2MDZjNjI4ZTc5MyIsInNnZCI6IjM5MTY0ZjIwLTZlZjUtNDRlZS04ZjAyLWEzODRjOTg1ZTY5MyIsInNwZ2QiOiI5ZjJlYWE1NC01NDM2LTQ0ZTgtYTkyNy00MzQ2NjlkMTU1MWEiLCJpY2giOiIwIiwiaWRtIjoiMCIsImlhIjoiOjpmZmZmOjE0MC4wLjAuNSIsImFwdiI6IjEuMC4wIiwiYWJuIjoiMTAwMCIsIm5iZiI6MTc0MzQ2NTM2OSwiZXhwIjoxNzQzNDY1NDI5LCJpYXQiOjE3NDM0NjUzNjl9.YWdVfOL5hEZTrd4f4qkmPCPmUUlaiG7I2REW5H0p6Gw"
+    };
+
+    try {
+      const res = await fetch(API_URL, { headers: HEADERS, method: 'GET' });
+      if (!res.ok) throw new Error(`API hatası: ${res.status}`);
+      
+      const data = await res.json();
+      console.log("API yanıtı alındı");
+      
+      if (!data.IsSucceeded || !data.Data || !data.Data.AllChannels)
+        throw new Error("Geçersiz API yanıtı");
+
+      // Belirtilen kanalı bul
+      const channel = data.Data.AllChannels.find(ch => 
+        ch && ch.StreamData && ch.StreamData.HlsStreamUrl && 
+        ch.StreamData.HlsStreamUrl.includes(`${channelId}_stream`)
+      );
+      
+      if (channel && channel.StreamData.HlsStreamUrl) {
+        const url = channel.StreamData.HlsStreamUrl;
+        const prefix = `https://ottcdn.kablowebtv.net/live_turksat_sub3/${channelId}_stream/index.m3u8?wmsAuthSign=`;
+        
+        if (url.startsWith(prefix)) {
+          const token = url.substring(prefix.length);
+          const timestamp = new Date().toLocaleString('tr-TR');
+          
+          tokenResult.innerHTML = `
+            <div><strong>Kanal:</strong> ${channel.Name || channelId}</div>
+            <div class="token-display">${token}</div>
+            <div class="timestamp">Alınma zamanı: ${timestamp}</div>
+          `;
+        } else {
+          throw new Error(`${channelId} URL'si beklenen formatta değil`);
+        }
+      } else {
+        throw new Error(`${channelId} kanalı veya stream URL bulunamadı`);
+      }
+    } catch (e) {
+      console.error("Hata:", e);
+      tokenResult.innerHTML = `<div class="error">Hata: ${e.message}</div>`;
+    }
+  }
+  </script>
+</body>
+</html>
